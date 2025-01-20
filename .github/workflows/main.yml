@@ -3,28 +3,32 @@ name: Build and Release PDF
 on:
   push:
     tags:
-      - 'v*.*.*'  
+      - 'v*.*.*'  # وقتی تگ‌های نسخه‌ای اضافه می‌شوند اجرا می‌شود.
+
+  release:
+    types:
+      - published  # وقتی یک ریلیز منتشر می‌شود اجرا می‌شود.
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      
+      # کلون کردن مخزن
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      
+      # نصب LaTeX
       - name: Set up LaTeX environment
         run: sudo apt-get update && sudo apt-get install -y texlive-full
 
-     
+      # ساخت فایل PDF
       - name: Build PDF
         run: |
           mkdir -p output
           pdflatex -output-directory=output main.tex
 
-     
+      # ذخیره فایل PDF به‌عنوان artifact
       - name: Upload PDF artifact
         uses: actions/upload-artifact@v3
         with:
@@ -36,23 +40,23 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-     
+      # کلون کردن مخزن
       - name: Checkout repository
         uses: actions/checkout@v3
 
-     
+      # دانلود artifact PDF ساخته شده
       - name: Download PDF artifact
         uses: actions/download-artifact@v3
         with:
           name: compiled-pdf
 
-     
+      # آپلود فایل PDF به Release
       - name: Upload Release Asset
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ github.event.release.upload_url }}
-          asset_path: output/main.pdf
+          asset_path: compiled-pdf/main.pdf
           asset_name: main.pdf
           asset_content_type: application/pdf
